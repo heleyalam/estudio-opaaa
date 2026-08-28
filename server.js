@@ -14,6 +14,7 @@ const io = new Server(server, {
 
 const DATA_FILE = path.join(__dirname, 'preguntas.json');
 
+// Función para cargar las preguntas desde el archivo JSON
 function cargarPreguntas() {
   if (fs.existsSync(DATA_FILE)) {
     try {
@@ -23,6 +24,15 @@ function cargarPreguntas() {
     }
   }
   return {};
+}
+
+// Función para guardar permanentemente las preguntas en el archivo JSON
+function guardarPreguntas(nuevasPreguntas) {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(nuevasPreguntas, null, 2), 'utf8');
+  } catch (err) {
+    console.error("Error al guardar preguntas:", err);
+  }
 }
 
 let bancoPreguntas = cargarPreguntas();
@@ -52,6 +62,20 @@ io.on('connection', (socket) => {
       jugadores[nombre].puntos += 10;
       io.emit('actualizarPuntuaciones', jugadores);
     }
+  });
+
+  // Guardar nueva pregunta permanentemente
+  socket.on('agregarPregunta', ({ categoria, pregunta, opciones, correcta }) => {
+    if (!bancoPreguntas[categoria]) {
+      bancoPreguntas[categoria] = [];
+    }
+    bancoPreguntas[categoria].push({ pregunta, opciones, correcta });
+
+    // Escribir permanentemente en preguntas.json
+    guardarPreguntas(bancoPreguntas);
+
+    // Actualizar materias y categorías para todos los usuarios conectados
+    io.emit('cargarCategorias', Object.keys(bancoPreguntas));
   });
 });
 
