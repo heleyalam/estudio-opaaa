@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma de Estudio OPAAA</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: auto; }
+    h1, h2 { color: #38bdf8; text-align: center; }
+    .card { background-color: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+    input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #334155; box-sizing: border-box; font-size: 16px; }
+    input, select { background-color: #0f172a; color: #fff; }
+    button { background-color: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    button:hover { background-color: #0369a1; }
+    .opciones-btn button { background-color: #334155; text-align: left; }
+    .opciones-btn button:hover { background-color: #475569; }
+    .opciones-btn button.correcta { background-color: #16a34a !important; }
+    .opciones-btn button.incorrecta { background-color: #dc2626 !important; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #334155; padding: 10px; text-align: left; }
+    th { background-color: #0f172a; color: #38bdf8; }
+    .flex-gap { display: flex; gap: 10px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Plataforma de Estudio OPAAA</h1>
+
+    <!-- Registro de Usuario -->
+    <div class="card" id="sec-registro">
+      <h2>Ingresa tu Nombre</h2>
+      <input type="text" id="nombreUsuario" placeholder="Escribe tu nombre o apodo...">
+      <button onclick="registrarJugador()">Entrar a Estudiar</button>
+    </div>
+
+    <div id="sec-juego" class="hidden">
+      <!-- Selector de Materia / Tema -->
+      <div class="card">
+        <h2>Selecciona una Materia</h2>
+        <select id="selectCategoria" onchange="cargarMateria()">
+          <option value="">-- Elige un tema --</option>
+        </select>
+      </div>
+
+      <!-- Zona de Pregunta -->
+      <div class="card hidden" id="zonaPreguntas">
+        <h2 id="tituloMateria"></h2>
+        <h3 id="textoPregunta"></h3>
+        <div id="contenedorOpciones" class="opciones-btn"></div>
+        <p id="feedback" style="font-weight: bold; text-align: center;"></p>
+        <button id="btnSiguiente" onclick="siguientePregunta()" style="margin-top: 15px;">Siguiente Pregunta ➡️</button>
+      </div>
+
+      <!-- Agregar Nuevas Preguntas -->
+      <div class="card">
+        <h2>➕ Agregar Nueva Pregunta (Se guardará para siempre)</h2>
+        <input type="text" id="nuevaCategoria" placeholder="Materia / Tema (Ej: Astronomía, Química, Biología)">
+        <input type="text" id="nuevaPregunta" placeholder="Escribe la pregunta...">
+        <div class="flex-gap">
+          <input type="text" id="opt0" placeholder="Opción 1">
+          <input type="text" id="opt1" placeholder="Opción 2">
+        </div>
+        <div class="flex-gap">
+          <input type="text" id="opt2" placeholder="Opción 3">
+          <input type="text" id="opt3" placeholder="Opción 4">
+        </div>
+        <label style="margin-top: 10px; display: block;">¿Cuál es la respuesta correcta?:</label>
+        <select id="opcionCorrecta">
+          <option value="0">Opción 1</option>
+          <option value="1">Opción 2</option>
+          <option value="2">Opción 3</option>
+          <option value="3">Opción 4</option>
+        </select>
+        <button onclick="guardarNuevaPregunta()">Guardar Pregunta Permanentemente</button>
+      </div>
+
+      <!-- Tabla de Puntuaciones -->
+      <div class="card">
+        <h2>🏆 Tabla de Posiciones</h2>
+        <table>
+          <thead>
+            <tr><th>Jugador</th><th>Puntos</th></tr>
+          </thead>
+          <tbody id="tablaPosiciones"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let usuarioActual = "";
+    let preguntasActuales = [];
+    let indicePregunta = 0;
+
+    function registrarJugador() {
+      const nombre = document.getElementById("nombreUsuario").value.trim();
+      if (!nombre) return alert("Por favor ingresa un nombre");
+      usuarioActual = nombre;
+      socket.emit("nuevoJugador", nombre);
+      document.getElementById("sec-registro").classList.add("hidden");
+      document.getElementById("sec-juego").classList.remove("hidden");
+    }
+
+    socket.on("cargarCategorias", (categorias) => {
+      const select = document.getElementById("selectCategoria");
+      const valPrevio = select.value;
+      select.innerHTML = '<option value="">-- Elige un tema --</option>';
+      categorias.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+      select.value = valPrevio;
+    });
+
+    function cargarMateria() {
+      const cat = document.getElementById("selectCategoria").value;
+      if (!cat) {
+        document.getElementById("zonaPreguntas").classList.add("hidden");
+        return;
+      }
+      socket.emit("obtenerPreguntas", cat);
+    }
+
+    socket.on("preguntasDeCategoria", (data) => {
+      preguntasActuales = data.preguntas;
+      indicePregunta = 0;
+      document.getElementById("tituloMateria").textContent = "Materia: " + data.categoria;
+      document.getElementById("zonaPreguntas").classList.remove("hidden");
+      mostrarPregunta();
+    });
+
+    function mostrarPregunta() {
+      document.getElementById("feedback").textContent = "";
+      if (preguntasActuales.length === 0) {
+        document.getElementById("textoPregunta").textContent = "No hay preguntas en esta materia aún.";
+        document.getElementById("contenedorOpciones").innerHTML = "";
+        return;
+      }
+
+      const q = preguntasActuales[indicePregunta];
+      document.getElementById("textoPregunta").textContent = `(${indicePregunta + 1}/${preguntasActuales.length}) ${q.pregunta}`;
+      
+      const cont = document.getElementById("contenedorOpciones");
+      cont.innerHTML = "";
+      q.opciones.forEach((opc, idx) => {
+        const btn = document.createElement("button");
+        btn.textContent = opc;
+        btn.onclick = () => verificarRespuesta(idx, q.correcta, btn);
+        cont.appendChild(btn);
+      });
+    }
+
+    function verificarRespuesta(elegida, correcta, boton) {
+      const botones = document.getElementById("contenedorOpciones").children;
+      for (let b of botones) { b.disabled = true; }
+
+      if (elegida === correcta) {
+        boton.classList.add("correcta");
+        document.getElementById("feedback").textContent = "¡Correcto! +10 puntos 🎉";
+        document.getElementById("feedback").style.color = "#4ade80";
+        socket.emit("respuestaCorrecta", usuarioActual);
+      } else {
+        boton.classList.add("incorrecta");
+        botones[correcta].classList.add("correcta");
+        document.getElementById("feedback").textContent = "Incorrecto ❌";
+        document.getElementById("feedback").style.color = "#f87171";
+      }
+    }
+
+    function siguientePregunta() {
+      if (preguntasActuales.length === 0) return;
+      indicePregunta = (indicePregunta + 1) % preguntasActuales.length;
+      mostrarPregunta();
+    }
+
+    function guardarNuevaPregunta() {
+      const categoria = document.getElementById("nuevaCategoria").value.trim();
+      const pregunta = document.getElementById("nuevaPregunta").value.trim();
+      const opt0 = document.getElementById("opt0").value.trim();
+      const opt1 = document.getElementById("opt1").value.trim();
+      const opt2 = document.getElementById("opt2").value.trim();
+      const opt3 = document.getElementById("opt3").value.trim();
+      const correcta = parseInt(document.getElementById("opcionCorrecta").value);
+
+      if (!categoria || !pregunta || !opt0 || !opt1 || !opt2 || !opt3) {
+        return alert("Por favor completa todos los campos.");
+      }
+
+      socket.emit("agregarPregunta", {
+        categoria,
+        pregunta,
+        opciones: [opt0, opt1, opt2, opt3],
+        correcta
+      });
+
+      // Limpiar campos
+      document.getElementById("nuevaPregunta").value = "";
+      document.getElementById("opt0").value = "";
+      document.getElementById("opt1").value = "";
+      document.getElementById("opt2").value = "";
+      document.getElementById("opt3").value = "";
+      alert("¡Pregunta guardada permanentemente con éxito!");
+    }
+
+    socket.on("actualizarPuntuaciones", (puntos) => {
+      const tbody = document.getElementById("tablaPosiciones");
+      tbody.innerHTML = "";
+      Object.entries(puntos).sort((a,b) => b[1] - a[1]).forEach(([j, p]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${j}</td><td>${p} pts</td>`;
+        tbody.appendChild(tr);
+      });
+    });
+  </script>
+</body>
+</html>

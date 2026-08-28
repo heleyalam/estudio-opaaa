@@ -1,0 +1,167 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+const DATA_FILE = path.join(__dirname, 'preguntas.json');
+
+// Banco completo de preguntas preparadas por materia
+const bancoInicial = {
+  "Astronomía (OPAAA)": [
+    {
+      pregunta: "¿Cuál es la estrella más cercana al Sistema Solar después del Sol?",
+      opciones: ["Sirio", "Próxima Centauri", "Betelgeuse", "Alfa Centauri A"],
+      correcta: 1
+    },
+    {
+      pregunta: "¿Qué ley astronómica establece que los planetas orbitan en elipses con el Sol en uno de los focos?",
+      opciones: ["Ley de Gravitación Universal", "Primera Ley de Kepler", "Segunda Ley de Kepler", "Ley de Hubble"],
+      correcta: 1
+    },
+    {
+      pregunta: "¿Cuál es la causa principal de las estaciones en la Tierra?",
+      opciones: ["La distancia cambiante al Sol", "La inclinación del eje de rotación terrestre", "La actividad solar", "El efecto de las mareas lunares"],
+      correcta: 1
+    },
+    {
+      pregunta: "¿Qué instrumento mide el espectro de luz emitido por las estrellas para determinar su composición?",
+      opciones: ["Telescopio reflector", "Espectrómetro", "Fotómetro", "Interferómetro"],
+      correcta: 1
+    }
+  ],
+  "Astrofísica y Cosmología": [
+    {
+      pregunta: "¿Cuál es el elemento químico más abundante en el Universo observable?",
+      opciones: ["Helio", "Oxígeno", "Hidrógeno", "Carbono"],
+      correcta: 2
+    },
+    {
+      pregunta: "¿Qué fenómeno describe el desplazamiento hacia el rojo (redshift) en la luz de galaxias lejanas?",
+      opciones: ["La expansión del Universo", "La rotación galáctica", "El colapso gravitacional", "La absorción interestelar"],
+      correcta: 0
+    },
+    {
+      pregunta: "¿Cuál es el límite máximo de masa para una enana blanca estable (Límite de Chandrasekhar)?",
+      opciones: ["1.4 masas solares", "3.0 masas solares", "0.5 masas solares", "10 masas solares"],
+      correcta: 0
+    }
+  ],
+  "Física": [
+    {
+      pregunta: "¿Cuál es la velocidad aproximada de la luz en el vacío?",
+      opciones: ["300,000 km/s", "150,000 km/s", "1,000,000 km/s", "30,000 km/s"],
+      correcta: 0
+    },
+    {
+      pregunta: "¿Qué unidad del Sistema Internacional mide la frecuencia de una onda?",
+      opciones: ["Joule", "Pascal", "Hertz", "Watt"],
+      correcta: 2
+    },
+    {
+      pregunta: "¿Cuál es la constante de aceleración de la gravedad estándar en la superficie terrestre?",
+      opciones: ["9.81 m/s²", "10.5 m/s²", "8.9 m/s²", "9.6 m/s²"],
+      correcta: 0
+    }
+  ],
+  "Química": [
+    {
+      pregunta: "¿Cuál es el número atómico del carbono?",
+      opciones: ["12", "6", "8", "14"],
+      correcta: 1
+    },
+    {
+      pregunta: "¿Qué tipo de enlace se forma cuando dos átomos comparten electrones?",
+      opciones: ["Enlace iónico", "Enlace covalente", "Enlace metálico", "Puente de hidrógeno"],
+      correcta: 1
+    }
+  ],
+  "Biología": [
+    {
+      pregunta: "¿Qué organelo celular se encarga de realizar la respiración celular para producir ATP?",
+      opciones: ["Ribosoma", "Mitocondria", "Aparato de Golgi", "Cloroplasto"],
+      correcta: 1
+    },
+    {
+      pregunta: "¿Qué molécula lleva la información genética en la mayoría de los seres vivos?",
+      opciones: ["ARN", "Proteína", "ADN", "Lípido"],
+      correcta: 2
+    }
+  ]
+};
+
+// Cargar o inicializar el archivo JSON
+function cargarPreguntas() {
+  if (fs.existsSync(DATA_FILE)) {
+    try {
+      const data = fs.readFileSync(DATA_FILE, 'utf8');
+      const json = JSON.parse(data);
+      // Fusionar preguntas iniciales si faltan materias
+      return Object.keys(json).length > 0 ? json : bancoInicial;
+    } catch (err) {
+      console.error("Error leyendo preguntas.json, usando banco inicial:", err);
+      return bancoInicial;
+    }
+  } else {
+    guardarPreguntas(bancoInicial);
+    return bancoInicial;
+  }
+}
+
+function guardarPreguntas(data) {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    console.error("Error al guardar preguntas.json:", err);
+  }
+}
+
+let bancoPreguntas = cargarPreguntas();
+let puntuaciones = {};
+
+app.use(express.static('public'));
+
+io.on('connection', (socket) => {
+  socket.emit('cargarCategorias', Object.keys(bancoPreguntas));
+  socket.emit('actualizarPuntuaciones', puntuaciones);
+
+  socket.on('nuevoJugador', (nombre) => {
+    if (!puntuaciones[nombre]) {
+      puntuaciones[nombre] = 0;
+    }
+    io.emit('actualizarPuntuaciones', puntuaciones);
+  });
+
+  socket.on('obtenerPreguntas', (categoria) => {
+    const lista = bancoPreguntas[categoria] || [];
+    socket.emit('preguntasDeCategoria', { categoria, preguntas: lista });
+  });
+
+  socket.on('respuestaCorrecta', (nombre) => {
+    if (nombre) {
+      puntuaciones[nombre] = (puntuaciones[nombre] || 0) + 10;
+      io.emit('actualizarPuntuaciones', puntuaciones);
+    }
+  });
+
+  socket.on('agregarPregunta', (datos) => {
+    const { categoria, pregunta, opciones, correcta } = datos;
+    if (!bancoPreguntas[categoria]) {
+      bancoPreguntas[categoria] = [];
+    }
+    bancoPreguntas[categoria].push({ pregunta, opciones, correcta });
+    guardarPreguntas(bancoPreguntas);
+
+    io.emit('cargarCategorias', Object.keys(bancoPreguntas));
+    io.emit('preguntaAgregadaExito', { categoria });
+  });
+});
+
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Servidor OPAAA corriendo en http://localhost:${PORT}`);
+});
