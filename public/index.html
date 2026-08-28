@@ -6,217 +6,159 @@
   <title>Plataforma de Estudio OPAAA</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-    .container { max-width: 900px; margin: auto; }
-    h1, h2 { color: #38bdf8; text-align: center; }
-    .card { background-color: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-    input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #334155; box-sizing: border-box; font-size: 16px; }
-    input, select { background-color: #0f172a; color: #fff; }
-    button { background-color: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    button:hover { background-color: #0369a1; }
-    .opciones-btn button { background-color: #334155; text-align: left; }
-    .opciones-btn button:hover { background-color: #475569; }
-    .opciones-btn button.correcta { background-color: #16a34a !important; }
-    .opciones-btn button.incorrecta { background-color: #dc2626 !important; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #334155; padding: 10px; text-align: left; }
-    th { background-color: #0f172a; color: #38bdf8; }
-    .flex-gap { display: flex; gap: 10px; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    h1, h2 { text-align: center; color: #38bdf8; }
+    .avatar-selection { display: flex; justify-content: center; gap: 15px; margin: 15px 0; }
+    .avatar-option { width: 50px; height: 50px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: 0.2s; }
+    .avatar-option.selected { border-color: #38bdf8; transform: scale(1.1); }
+    input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; }
+    input[type="text"] { background: #334155; color: #fff; }
+    button { background: #0284c7; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #0369a1; }
+    .player-card { display: flex; align-items: center; gap: 12px; background: #334155; padding: 8px 15px; border-radius: 8px; margin-bottom: 8px; }
+    .player-card img { width: 40px; height: 40px; border-radius: 50%; }
     .hidden { display: none; }
+    .option-btn { background: #475569; margin: 5px 0; text-align: left; }
+    .option-btn:hover { background: #64748b; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Plataforma de Estudio OPAAA</h1>
+    <h1>🚀 Olimpo OPAAA</h1>
 
     <!-- Registro de Usuario -->
-    <div class="card" id="sec-registro">
-      <h2>Ingresa tu Nombre</h2>
-      <input type="text" id="nombreUsuario" placeholder="Escribe tu nombre o apodo...">
-      <button onclick="registrarJugador()">Entrar a Estudiar</button>
+    <div id="registro-section">
+      <h2>Ingresa tu Nombre y Elige Avatar</h2>
+      <input type="text" id="username-input" placeholder="Escribe tu nombre..." />
+      
+      <p style="text-align: center; margin-bottom: 5px;">Selecciona tu personaje:</p>
+      <div class="avatar-selection">
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Astronaut" class="avatar-option selected" onclick="selectAvatar(this)">
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Rocket" class="avatar-option" onclick="selectAvatar(this)">
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Galaxy" class="avatar-option" onclick="selectAvatar(this)">
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Star" class="avatar-option" onclick="selectAvatar(this)">
+      </div>
+
+      <button onclick="registrarUsuario()">Entrar a Estudiar</button>
     </div>
 
-    <div id="sec-juego" class="hidden">
-      <!-- Selector de Materia / Tema -->
-      <div class="card">
-        <h2>Selecciona una Materia</h2>
-        <select id="selectCategoria" onchange="cargarMateria()">
-          <option value="">-- Elige un tema --</option>
-        </select>
-      </div>
+    <!-- Panel Principal -->
+    <div id="main-section" class="hidden">
+      <h2>Tabla de Posiciones</h2>
+      <div id="lista-jugadores"></div>
 
-      <!-- Zona de Pregunta -->
-      <div class="card hidden" id="zonaPreguntas">
-        <h2 id="tituloMateria"></h2>
-        <h3 id="textoPregunta"></h3>
-        <div id="contenedorOpciones" class="opciones-btn"></div>
-        <p id="feedback" style="font-weight: bold; text-align: center;"></p>
-        <button id="btnSiguiente" onclick="siguientePregunta()" style="margin-top: 15px;">Siguiente Pregunta ➡️</button>
-      </div>
+      <hr style="border-color: #334155; margin: 20px 0;">
 
-      <!-- Agregar Nuevas Preguntas -->
-      <div class="card">
-        <h2>➕ Agregar Nueva Pregunta (Se guardará para siempre)</h2>
-        <input type="text" id="nuevaCategoria" placeholder="Materia / Tema (Ej: Astronomía, Química, Biología)">
-        <input type="text" id="nuevaPregunta" placeholder="Escribe la pregunta...">
-        <div class="flex-gap">
-          <input type="text" id="opt0" placeholder="Opción 1">
-          <input type="text" id="opt1" placeholder="Opción 2">
-        </div>
-        <div class="flex-gap">
-          <input type="text" id="opt2" placeholder="Opción 3">
-          <input type="text" id="opt3" placeholder="Opción 4">
-        </div>
-        <label style="margin-top: 10px; display: block;">¿Cuál es la respuesta correcta?:</label>
-        <select id="opcionCorrecta">
-          <option value="0">Opción 1</option>
-          <option value="1">Opción 2</option>
-          <option value="2">Opción 3</option>
-          <option value="3">Opción 4</option>
-        </select>
-        <button onclick="guardarNuevaPregunta()">Guardar Pregunta Permanentemente</button>
-      </div>
+      <h2>Selecciona Materia</h2>
+      <select id="categoria-select" onchange="cargarPreguntasMateria()">
+        <option value="">-- Seleccionar Materia --</option>
+      </select>
 
-      <!-- Tabla de Puntuaciones -->
-      <div class="card">
-        <h2>🏆 Tabla de Posiciones</h2>
-        <table>
-          <thead>
-            <tr><th>Jugador</th><th>Puntos</th></tr>
-          </thead>
-          <tbody id="tablaPosiciones"></tbody>
-        </table>
+      <div id="quiz-container" class="hidden">
+        <h3 id="pregunta-texto"></h3>
+        <div id="opciones-container"></div>
       </div>
     </div>
   </div>
 
   <script>
     const socket = io();
-    let usuarioActual = "";
+    let usuarioActual = '';
+    let avatarSeleccionado = 'https://api.dicebear.com/7.x/bottts/svg?seed=Astronaut';
     let preguntasActuales = [];
     let indicePregunta = 0;
 
-    function registrarJugador() {
-      const nombre = document.getElementById("nombreUsuario").value.trim();
-      if (!nombre) return alert("Por favor ingresa un nombre");
-      usuarioActual = nombre;
-      socket.emit("nuevoJugador", nombre);
-      document.getElementById("sec-registro").classList.add("hidden");
-      document.getElementById("sec-juego").classList.remove("hidden");
+    function selectAvatar(element) {
+      document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      avatarSeleccionado = element.src;
     }
 
-    socket.on("cargarCategorias", (categorias) => {
-      const select = document.getElementById("selectCategoria");
-      const valPrevio = select.value;
-      select.innerHTML = '<option value="">-- Elige un tema --</option>';
+    function registrarUsuario() {
+      const nombre = document.getElementById('username-input').value.trim();
+      if (!nombre) return alert('Ingresa tu nombre');
+      usuarioActual = nombre;
+
+      socket.emit('nuevoJugador', { nombre: usuarioActual, avatar: avatarSeleccionado });
+
+      document.getElementById('registro-section').classList.add('hidden');
+      document.getElementById('main-section').classList.remove('hidden');
+    }
+
+    socket.on('cargarCategorias', (categorias) => {
+      const select = document.getElementById('categoria-select');
+      select.innerHTML = '<option value="">-- Seleccionar Materia --</option>';
       categorias.forEach(cat => {
-        const opt = document.createElement("option");
+        const opt = document.createElement('option');
         opt.value = cat;
         opt.textContent = cat;
         select.appendChild(opt);
       });
-      select.value = valPrevio;
     });
 
-    function cargarMateria() {
-      const cat = document.getElementById("selectCategoria").value;
-      if (!cat) {
-        document.getElementById("zonaPreguntas").classList.add("hidden");
-        return;
-      }
-      socket.emit("obtenerPreguntas", cat);
+    socket.on('actualizarPuntuaciones', (jugadores) => {
+      const container = document.getElementById('lista-jugadores');
+      container.innerHTML = '';
+      Object.keys(jugadores).forEach(nombre => {
+        const p = jugadores[nombre];
+        const card = document.createElement('div');
+        card.className = 'player-card';
+        card.innerHTML = `
+          <img src="${p.avatar}" alt="Avatar">
+          <div style="flex-grow: 1;"><strong>${nombre}</strong></div>
+          <div><strong>${p.puntos} pts</strong></div>
+        `;
+        container.appendChild(card);
+      });
+    });
+
+    function cargarPreguntasMateria() {
+      const cat = document.getElementById('categoria-select').value;
+      if (cat) socket.emit('obtenerPreguntas', cat);
     }
 
-    socket.on("preguntasDeCategoria", (data) => {
+    socket.on('preguntasDeCategoria', (data) => {
       preguntasActuales = data.preguntas;
       indicePregunta = 0;
-      document.getElementById("tituloMateria").textContent = "Materia: " + data.categoria;
-      document.getElementById("zonaPreguntas").classList.remove("hidden");
-      mostrarPregunta();
+      if (preguntasActuales.length > 0) {
+        document.getElementById('quiz-container').classList.remove('hidden');
+        mostrarPregunta();
+      } else {
+        alert('No hay preguntas disponibles en esta materia.');
+      }
     });
 
     function mostrarPregunta() {
-      document.getElementById("feedback").textContent = "";
-      if (preguntasActuales.length === 0) {
-        document.getElementById("textoPregunta").textContent = "No hay preguntas en esta materia aún.";
-        document.getElementById("contenedorOpciones").innerHTML = "";
-        return;
-      }
-
       const q = preguntasActuales[indicePregunta];
-      document.getElementById("textoPregunta").textContent = `(${indicePregunta + 1}/${preguntasActuales.length}) ${q.pregunta}`;
-      
-      const cont = document.getElementById("contenedorOpciones");
-      cont.innerHTML = "";
-      q.opciones.forEach((opc, idx) => {
-        const btn = document.createElement("button");
-        btn.textContent = opc;
-        btn.onclick = () => verificarRespuesta(idx, q.correcta, btn);
-        cont.appendChild(btn);
+      document.getElementById('pregunta-texto').textContent = q.pregunta;
+      const optsDiv = document.getElementById('opciones-container');
+      optsDiv.innerHTML = '';
+
+      q.opciones.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => responder(idx, q.correcta);
+        optsDiv.appendChild(btn);
       });
     }
 
-    function verificarRespuesta(elegida, correcta, boton) {
-      const botones = document.getElementById("contenedorOpciones").children;
-      for (let b of botones) { b.disabled = true; }
-
-      if (elegida === correcta) {
-        boton.classList.add("correcta");
-        document.getElementById("feedback").textContent = "¡Correcto! +10 puntos 🎉";
-        document.getElementById("feedback").style.color = "#4ade80";
-        socket.emit("respuestaCorrecta", usuarioActual);
+    function responder(seleccionada, correcta) {
+      if (seleccionada === correcta) {
+        alert('¡Correcto! +10 puntos');
+        socket.emit('respuestaCorrecta', usuarioActual);
       } else {
-        boton.classList.add("incorrecta");
-        botones[correcta].classList.add("correcta");
-        document.getElementById("feedback").textContent = "Incorrecto ❌";
-        document.getElementById("feedback").style.color = "#f87171";
+        alert('Incorrecto');
+      }
+      indicePregunta++;
+      if (indicePregunta < preguntasActuales.length) {
+        mostrarPregunta();
+      } else {
+        alert('Has completado las preguntas de esta materia.');
+        document.getElementById('quiz-container').classList.add('hidden');
       }
     }
-
-    function siguientePregunta() {
-      if (preguntasActuales.length === 0) return;
-      indicePregunta = (indicePregunta + 1) % preguntasActuales.length;
-      mostrarPregunta();
-    }
-
-    function guardarNuevaPregunta() {
-      const categoria = document.getElementById("nuevaCategoria").value.trim();
-      const pregunta = document.getElementById("nuevaPregunta").value.trim();
-      const opt0 = document.getElementById("opt0").value.trim();
-      const opt1 = document.getElementById("opt1").value.trim();
-      const opt2 = document.getElementById("opt2").value.trim();
-      const opt3 = document.getElementById("opt3").value.trim();
-      const correcta = parseInt(document.getElementById("opcionCorrecta").value);
-
-      if (!categoria || !pregunta || !opt0 || !opt1 || !opt2 || !opt3) {
-        return alert("Por favor completa todos los campos.");
-      }
-
-      socket.emit("agregarPregunta", {
-        categoria,
-        pregunta,
-        opciones: [opt0, opt1, opt2, opt3],
-        correcta
-      });
-
-      // Limpiar campos
-      document.getElementById("nuevaPregunta").value = "";
-      document.getElementById("opt0").value = "";
-      document.getElementById("opt1").value = "";
-      document.getElementById("opt2").value = "";
-      document.getElementById("opt3").value = "";
-      alert("¡Pregunta guardada permanentemente con éxito!");
-    }
-
-    socket.on("actualizarPuntuaciones", (puntos) => {
-      const tbody = document.getElementById("tablaPosiciones");
-      tbody.innerHTML = "";
-      Object.entries(puntos).sort((a,b) => b[1] - a[1]).forEach(([j, p]) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${j}</td><td>${p} pts</td>`;
-        tbody.appendChild(tr);
-      });
-    });
   </script>
 </body>
 </html>
