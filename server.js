@@ -6,7 +6,11 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+
+// Aumentar el límite de recepción para soportar imágenes subidas por usuarios
+const io = new Server(server, {
+  maxHttpBufferSize: 1e7 // 10 MB
+});
 
 const DATA_FILE = path.join(__dirname, 'preguntas.json');
 
@@ -22,7 +26,7 @@ function cargarPreguntas() {
 }
 
 let bancoPreguntas = cargarPreguntas();
-let jugadores = {}; // Estructura: { nombre: { puntos: 0, avatar: 'url' } }
+let jugadores = {};
 
 app.use(express.static('public'));
 
@@ -33,11 +37,7 @@ io.on('connection', (socket) => {
   socket.on('nuevoJugador', (data) => {
     const { nombre, avatar } = data;
     if (nombre) {
-      if (!jugadores[nombre]) {
-        jugadores[nombre] = { puntos: 0, avatar: avatar };
-      } else {
-        jugadores[nombre].avatar = avatar; // Actualizar avatar si vuelve a entrar
-      }
+      jugadores[nombre] = { puntos: jugadores[nombre] ? jugadores[nombre].puntos : 0, avatar: avatar };
       io.emit('actualizarPuntuaciones', jugadores);
     }
   });
