@@ -1,233 +1,44 @@
 {
   "Astronomía Observacional": [
     {
-      "pregunta": "¿Cuál es la estrella más brillante del cielo nocturno?",
+      "pregunta": "¿Cuál es la estrella más brillante del cielo nocturno visto desde la Tierra?",
       "opciones": ["Canopo", "Sirio", "Betelgeuse", "Vega"],
-      "correcta": 1
+      "correcta": 1,
+      "explicacion": "Sirio (Alpha Canis Majoris) tiene una magnitud aparente de -1.46, lo que la convierte en la estrella más brillante del cielo nocturno."
     },
     {
-      "pregunta": "¿A qué constelación pertenece la estrella Polaris en el hemisferio norte?",
-      "opciones": ["Ursa Major", "Ursa Minor", "Cassiopeia", "Orion"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué objeto del catálogo Messier corresponde a la Galaxia de Andrómeda?",
-      "opciones": ["M31", "M42", "M13", "M45"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué objeto Messier es conocido como la Gran Nebulosa de Orión?",
-      "opciones": ["M1", "M42", "M8", "M57"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Cuál es la franja del cielo por la que transitan aparentemente el Sol, la Luna y los planetas?",
-      "opciones": ["Ecuador Celeste", "Eclíptica", "Zodíaco", "Meridiano local"],
-      "correcta": 2
-    },
-    {
-      "pregunta": "¿Cuál es la constelación más grande del cielo nocturno por área?",
-      "opciones": ["Hydra", "Ursa Major", "Pegasus", "Centaurus"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué estrella supergigante roja marca el hombro de la constelación de Orión?",
-      "opciones": ["Rigel", "Betelgeuse", "Aldebarán", "Antares"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Cuál es la cúmulo abierto conocido comúnmente como las Siete Hermanas?",
-      "opciones": ["Híades", "Pléyades (M45)", "Cúmulo del Pesebre (M44)", "Cúmulo de Ptolomeo"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué estrella es la más brillante de la constelación de Tauro?",
-      "opciones": ["Aldebarán", "Pólux", "Cástor", "Regulus"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Cómo se llama el punto del cielo ubicado exactamente sobre la cabeza de un observador?",
-      "opciones": ["Nadir", "Zénit", "Polo Celeste", "Solsticio"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué instrumento óptico inventado por Galileo utiliza lentes para refractar la luz?",
-      "opciones": ["Telescopio Reflector", "Telescopio Refractor", "Radiointerferómetro", "Espectrometro"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué tipo de telescopio utiliza espejos en lugar de lentes principales?",
-      "opciones": ["Refractor", "Reflector", "Prismático", "Galileano"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué estrella de la constelación Cruz del Sur indica aproximadamente la dirección al polo sur celeste?",
-      "opciones": ["Alpha Crucis (Acrux)", "Beta Crucis (Mimosa)", "Gamma Crucis (Gacrux)", "Delta Crucis"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué fase lunar es necesaria para que ocurra un eclipse solar?",
-      "opciones": ["Luna Llena", "Luna Nueva", "Cuarto Creciente", "Cuarto Menguante"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué fase lunar es necesaria para que ocurra un eclipse lunar?",
-      "opciones": ["Luna Nueva", "Luna Llena", "Cuarto Creciente", "Gibosa Creciente"],
-      "correcta": 1
+      "pregunta": "EJERCICIO: Un telescopio refractor tiene una distancia focal del objetivo de 1000 mm y un ocular de 10 mm. ¿Cuál es su aumento angular?",
+      "opciones": ["10x", "100x", "1000x", "50x"],
+      "correcta": 1,
+      "explicacion": "El aumento (M) se calcula dividiendo la distancia focal del objetivo entre la del ocular: M = F_obj / f_oc = 1000 mm / 10 mm = 100x."
     }
   ],
   "Mecánica Celeste y Astrofísica": [
     {
-      "pregunta": "¿Cuál de las leyes de Kepler establece que las órbitas planetarias son elípticas con el Sol en uno de los focos?",
-      "opciones": ["Primera Ley", "Segunda Ley", "Tercera Ley", "Ley de Gravitación"],
-      "correcta": 0
+      "pregunta": "¿Qué ley establece que el cuadrado del período orbital de un planeta es proporcional al cubo del semieje mayor de su órbita?",
+      "opciones": ["Primera Ley de Kepler", "Segunda Ley de Kepler", "Tercera Ley de Kepler", "Ley de Gravitación de Newton"],
+      "correcta": 2,
+      "explicacion": "La Tercera Ley de Kepler formula matemáticamente que T² es proporcional a a³ para cualquier cuerpo en órbita alrededor del mismo objeto masivo."
     },
     {
-      "pregunta": "¿Qué expresa la Segunda Ley de Kepler?",
-      "opciones": ["Las órbitas son elípticas", "El radio vector que une al Sol y un planeta barre áreas iguales en tiempos iguales", "El cuadrado del período orbital es proporcional al cubo del semieje mayor", "La fuerza gravitatoria disminuye con la distancia"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué expresa la Tercera Ley de Kepler?",
-      "opciones": ["El área barrida es constante", "El cuadrado del período orbital es proporcional al cubo del semieje mayor", "La fuerza es inversamente proporcional a la distancia", "La velocidad orbital es constante"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Cómo se llama el punto de máxima cercanía de un planeta al Sol en su órbita?",
-      "opciones": ["Afelio", "Perihelio", "Perigeo", "Apogeo"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Cómo se llama el punto de máxima distancia de un planeta al Sol en su órbita?",
-      "opciones": ["Perihelio", "Afelio", "Perigeo", "Apogeo"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué tipo de estrellas variables pulsantes son utilizadas como velas estándar para medir distancias cósmicas?",
-      "opciones": ["Cefeidas", "Enanas Blancas", "Supernovas Tipo Ia", "Estrellas de Neutrones"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué diagrama clasifica a las estrellas según su luminosidad/magnitud absoluta frente a su temperatura/tipo espectral?",
-      "opciones": ["Diagrama de Fase", "Diagrama de Hertzsprung-Russell (H-R)", "Diagrama de Hubble", "Diagrama de Bode"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿En qué estado térmico se encuentra una estrella en la secuencia principal del diagrama H-R?",
-      "opciones": ["Equilibrio Hidrostático", "Colapso Gravitatorio", "Expansión Adiabática", "Superfluidez"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué proceso nuclear genera energía principal en las estrellas de la secuencia principal como el Sol?",
-      "opciones": ["Fisión nuclear de uranio", "Fusión nuclear de hidrógeno a helio", "Decaimiento alfa", "Aniquilación materia-antimateria"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué límite establece la masa máxima que puede soportar una enana blanca (aprox. 1.4 masas solares)?",
-      "opciones": ["Límite de Chandrasekhar", "Límite de Roche", "Límite de Eddington", "Radio de Schwarzschild"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué distancia alrededor de un cuerpo masivo define la distancia mínima a la que un satélite se mantendrá unido por su propia gravedad?",
-      "opciones": ["Límite de Roche", "Límite de Chandrasekhar", "Esfera de Hill", "Punto de Lagrange"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Cuál es la velocidad mínima que necesita un objeto para escapar de la atracción gravitatoria de un cuerpo masivo?",
-      "opciones": ["Velocidad orbital", "Velocidad de escape", "Velocidad terminal", "Velocidad cósmica secundaria"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué cuerpo remanente denso se forma cuando una estrella masiva sufre un colapso de núcleo pero no llega a formar un agujero negro?",
-      "opciones": ["Enana Blanca", "Estrella de Neutrones", "Enana Marrón", "Gigante Roja"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué ley relaciona el desplazamiento al rojo de las galaxias con su distancia a la Tierra?",
-      "opciones": ["Ley de Hubble-Lemaître", "Ley de Wien", "Ley de Stefan-Boltzmann", "Ley de Planck"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué ley establece que la radiación emitida por un cuerpo negro es inversamente proporcional a la temperatura en su longitud de onda de máximo pico?",
-      "opciones": ["Ley de Wien", "Ley de Stefan-Boltzmann", "Ley de Kepler", "Ley de Newton"],
-      "correcta": 0
+      "pregunta": "EJERCICIO (Dificultad Alta): Si un planeta orbitando al Sol tiene un semieje mayor de 4 UA, ¿cuál es su período orbital en años terrestres?",
+      "opciones": ["4 años", "8 años", "16 años", "64 años"],
+      "correcta": 1,
+      "explicacion": "Aplicando la Tercera Ley de Kepler (T² = a³ en unidades astronómicas y años): T² = 4³ = 64. Extrayendo la raíz cuadrada: T = √64 = 8 años."
     }
   ],
   "Astronomía Posicional y Física": [
     {
-      "pregunta": "¿Cómo se denomina la distancia angular de un cuerpo celeste medida al norte o al sur del ecuador celeste?",
-      "opciones": ["Ascensión Recta", "Declinación", "Acimut", "Altura"],
-      "correcta": 1
+      "pregunta": "¿Cómo se llama el ángulo medido sobre la eclíptica desde el punto vernal hacia el este?",
+      "opciones": ["Ascensión Recta", "Longitud Eclíptica", "Declinación", "Acimut"],
+      "correcta": 1,
+      "explicacion": "En el sistema de coordenadas eclípticas, la posición a lo largo del plano de la eclíptica se mide como Longitud Eclíptica (λ) a partir del punto Aries."
     },
     {
-      "pregunta": "¿En qué unidades se mide habitualmente la Ascensión Recta en el sistema ecuatorial?",
-      "opciones": ["Grados, minutos y segundos", "Horas, minutos y segundos", "Radianes", "Metros"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿En qué sistema de coordenadas celestes los ejes principales son el acimut y la altura?",
-      "opciones": ["Sistema Ecuatorial", "Sistema Altacimutal (Horizontal)", "Sistema Eclíptico", "Sistema Galáctico"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Cuál es el valor aproximado de 1 Unidad Astronómica (UA) en kilómetros?",
-      "opciones": ["150 millones de km", "300 mil km", "9.46 billones de km", "1 millón de km"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué unidad de longitud se define como la distancia a la cual 1 Unidad Astronómica subtiende un ángulo de un segundo de arco?",
-      "opciones": ["Año luz", "Pársec", "Unidad Astronómica", "Kiloparsec"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué fenómeno óptico atmosférico causa el centelleo de las estrellas visto desde la Tierra?",
-      "opciones": ["Refracción atmosférica y turbulencia", "Dispersión Rayleigh", "Reflexión total interna", "Efecto Doppler"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Cómo se llama el cambio aparente de posición de un objeto cercano cuando se observa desde dos puntos de vista diferentes?",
-      "opciones": ["Paralaje", "Precesión", "Nutación", "Aperración de la luz"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué movimiento lento y circular del eje de rotación de la Tierra tarda aproximadamente 25.776 años en completarse?",
-      "opciones": ["Nutación", "Precesión de los equinoccios", "Rotación", "Traslación"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿En un choque perfectamente inelástico entre dos cuerpos, qué cantidad física se conserva siempre?",
-      "opciones": ["Energía Cinética", "Cantidad de Movimiento (Momento lineal)", "Energía Mecánica Total", "Velocidad relativa"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué ley de la termodinámica establece que la energía no se crea ni se destruye, solo se transforma?",
-      "opciones": ["Primera Ley", "Segunda Ley", "Tercera Ley", "Ley Cero"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué efecto describe el cambio de frecuencia o longitud de onda de una onda en relación con un observador en movimiento?",
-      "opciones": ["Efecto Doppler", "Efecto Fotoeléctrico", "Efecto Compton", "Efecto Tyndall"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Qué ocurre con el espectro de la luz de una estrella cuando se aleja de la Tierra?",
-      "opciones": ["Desplazamiento al azul (blueshift)", "Desplazamiento al rojo (redshift)", "Aumento de brillo", "Dispersión croma"],
-      "correcta": 1
-    },
-    {
-      "pregunta": "¿Qué constante de la física relaciona la energía de un fotón con su frecuencia (E = h * f)?",
-      "opciones": ["Constante de Planck", "Constante de Gravitación Universal", "Constante de Boltzmann", "Constante de Avogadro"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Cuál es la velocidad de la luz en el vacío en metros por segundo aproximadamente?",
-      "opciones": ["3 x 10^8 m/s", "1.5 x 10^8 m/s", "3 x 10^5 m/s", "3 x 10^10 m/s"],
-      "correcta": 0
-    },
-    {
-      "pregunta": "¿Cómo se llama la fuerza ficticia o aparente que experimenta un observador dentro de un sistema en rotación?",
-      "opciones": ["Fuerza de Coriolis", "Fuerza Gravitatoria", "Fuerza Electromagnética", "Fuerza Nuclear Fuerte"],
-      "correcta": 0
+      "pregunta": "EJERCICIO (Dificultad Alta): Calcula la distancia en pársecs a una estrella que presenta un ángulo de paralaje de 0.05 segundos de arco (50 mas).",
+      "opciones": ["10 pc", "20 pc", "50 pc", "200 pc"],
+      "correcta": 1,
+      "explicacion": "La relación entre distancia (d en pársecs) y paralaje (p en segundos de arco) es d = 1 / p. Por lo tanto: d = 1 / 0.05 = 20 pc."
     }
   ]
 }
