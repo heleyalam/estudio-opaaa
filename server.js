@@ -7,14 +7,15 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
-// Aumentar el límite de recepción para soportar imágenes subidas por usuarios
 const io = new Server(server, {
-  maxHttpBufferSize: 1e7 // 10 MB
+  maxHttpBufferSize: 1e7 // 10 MB para imágenes de avatares
 });
 
 const DATA_FILE = path.join(__dirname, 'preguntas.json');
 
-// Función para cargar las preguntas desde el archivo JSON
+// CLAVE SECRETAPARA EL ROL DE EDITOR (Puedes cambiarla aquí)
+const CLAVE_EDITOR = "opaaa2026"; 
+
 function cargarPreguntas() {
   if (fs.existsSync(DATA_FILE)) {
     try {
@@ -26,7 +27,6 @@ function cargarPreguntas() {
   return {};
 }
 
-// Función para guardar permanentemente las preguntas en el archivo JSON
 function guardarPreguntas(nuevasPreguntas) {
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(nuevasPreguntas, null, 2), 'utf8');
@@ -64,18 +64,29 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Guardar nueva pregunta permanentemente
-  socket.on('agregarPregunta', ({ categoria, pregunta, opciones, correcta }) => {
+  // Validar clave del editor
+  socket.on('verificarEditor', (clave) => {
+    if (clave === CLAVE_EDITOR) {
+      socket.emit('accesoEditorConcedido', true);
+    } else {
+      socket.emit('accesoEditorConcedido', false);
+    }
+  });
+
+  // Agregar nueva pregunta de forma permanente
+  socket.on('agregarPregunta', ({ clave, categoria, pregunta, opciones, correcta }) => {
+    if (clave !== CLAVE_EDITOR) return;
+
     if (!bancoPreguntas[categoria]) {
       bancoPreguntas[categoria] = [];
     }
-    bancoPreguntas[categoria].push({ pregunta, opciones, correcta });
 
-    // Escribir permanentemente en preguntas.json
+    bancoPreguntas[categoria].push({ pregunta, opciones, correcta });
     guardarPreguntas(bancoPreguntas);
 
-    // Actualizar materias y categorías para todos los usuarios conectados
+    // Notificar a todos los usuarios de la nueva categoría/pregunta
     io.emit('cargarCategorias', Object.keys(bancoPreguntas));
+    socket.emit('preguntaGuardadaExito');
   });
 });
 
