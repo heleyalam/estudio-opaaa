@@ -73,15 +73,14 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Agregar nueva pregunta de forma permanente
-  socket.on('agregarPregunta', ({ clave, categoria, pregunta, opciones, correcta }) => {
+  socket.on('agregarPregunta', ({ clave, categoria, pregunta, opciones, correcta, explicacion }) => {
     if (clave !== CLAVE_EDITOR) return;
 
     if (!bancoPreguntas[categoria]) {
       bancoPreguntas[categoria] = [];
     }
 
-    bancoPreguntas[categoria].push({ pregunta, opciones, correcta });
+    bancoPreguntas[categoria].push({ pregunta, opciones, correcta, explicacion });
     guardarPreguntas(bancoPreguntas);
 
     // Notificar a todos los usuarios de la nueva categoría/pregunta
