@@ -18,8 +18,8 @@
     .upload-box { text-align: center; margin: 10px 0 20px; }
     .upload-btn { background: #334155; padding: 8px 15px; border-radius: 6px; cursor: pointer; display: inline-block; font-size: 0.9em; border: 1px dashed #38bdf8; }
     
-    input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; }
-    input[type="text"] { background: #334155; color: #fff; }
+    input, select, button, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; }
+    input[type="text"], input[type="number"], textarea { background: #334155; color: #fff; }
     button { background: #0284c7; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
     button:hover { background: #0369a1; }
     
@@ -29,6 +29,7 @@
     .hidden { display: none; }
     .option-btn { background: #475569; margin: 5px 0; text-align: left; }
     .option-btn:hover { background: #64748b; }
+    .option-btn:disabled { cursor: not-allowed; opacity: 0.9; }
   </style>
 </head>
 <body>
@@ -72,6 +73,37 @@
         <h3 id="pregunta-texto"></h3>
         <div id="opciones-container"></div>
       </div>
+
+      <!-- Botón de Modo Editor -->
+      <div style="text-align: center; margin-top: 40px;">
+        <button id="btnModoEditor" style="background: #333; color: #fff; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; width: auto;">
+          🛠️ Modo Editor
+        </button>
+      </div>
+
+      <!-- Modal / Formulario de Editor (Oculto por defecto) -->
+      <div id="panelEditor" style="display: none; background: #1e293b; color: white; padding: 20px; border-radius: 10px; max-width: 500px; margin: 20px auto; text-align: left; border: 1px solid #38bdf8;">
+        <h3 style="color: #38bdf8; text-align: center;">➕ Agregar Nueva Pregunta</h3>
+        
+        <label>Materia / Categoría:</label>
+        <input type="text" id="edCategoria" placeholder="Ej: Astronomía Observacional">
+
+        <label>Pregunta:</label>
+        <input type="text" id="edPregunta" placeholder="Escribe la pregunta">
+
+        <label>Opciones (separadas por coma):</label>
+        <input type="text" id="edOpciones" placeholder="Opción 1, Opción 2, Opción 3, Opción 4">
+
+        <label>Índice de la respuesta correcta (0 para la 1ª, 1 para la 2ª, etc.):</label>
+        <input type="number" id="edCorrecta" min="0" max="3" value="0">
+
+        <label>Explicación / Resolución del ejercicio:</label>
+        <textarea id="edExplicacion" placeholder="Explica el procedimiento o razón teórica" rows="3"></textarea>
+
+        <button id="btnGuardarPregunta" style="background: #22c55e; color: white; margin-top: 15px;">
+          Guardar Pregunta Permanentemente
+        </button>
+      </div>
     </div>
   </div>
 
@@ -81,7 +113,9 @@
     let avatarSeleccionado = 'https://api.dicebear.com/7.x/bottts/svg?seed=Astronaut';
     let preguntasActuales = [];
     let indicePregunta = 0;
+    let claveEditorGuardada = "";
 
+    // --- LÓGICA DE AVATARES Y REGISTRO ---
     function selectAvatar(element) {
       document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
       element.classList.add('selected');
@@ -93,11 +127,8 @@
       if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-          avatarSeleccionado = e.target.result; // Convierte la imagen subida a formato Base64
-          
-          // Crear icono visual para la imagen subida
+          avatarSeleccionado = e.target.result;
           document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-          
           let uploadedImg = document.getElementById('custom-preview');
           if (!uploadedImg) {
             uploadedImg = document.createElement('img');
@@ -119,11 +150,11 @@
       usuarioActual = nombre;
 
       socket.emit('nuevoJugador', { nombre: usuarioActual, avatar: avatarSeleccionado });
-
       document.getElementById('registro-section').classList.add('hidden');
       document.getElementById('main-section').classList.remove('hidden');
     }
 
+    // --- LÓGICA DE ACTUALIZACIÓN (TABLA Y MATERIAS) ---
     socket.on('cargarCategorias', (categorias) => {
       const select = document.getElementById('categoria-select');
       select.innerHTML = '<option value="">-- Seleccionar Materia --</option>';
@@ -151,6 +182,7 @@
       });
     });
 
+    // --- LÓGICA DEL CUESTIONARIO ---
     function cargarPreguntasMateria() {
       const cat = document.getElementById('categoria-select').value;
       if (cat) socket.emit('obtenerPreguntas', cat);
@@ -169,110 +201,124 @@
 
     function mostrarPregunta() {
       const q = preguntasActuales[indicePregunta];
-      document.getElementById('pregunta-texto').textContent = q.pregunta;
+      document.getElementById('pregunta-texto').textContent = `${indicePregunta + 1}. ${q.pregunta}`;
+      
       const optsDiv = document.getElementById('opciones-container');
       optsDiv.innerHTML = '';
+      
+      // Crear o limpiar cuadro de explicación
+      let expDiv = document.getElementById('explicacion-box');
+      if (!expDiv) {
+        expDiv = document.createElement('div');
+        expDiv.id = 'explicacion-box';
+        expDiv.style.cssText = 'display:none; margin-top:15px; padding:12px; background:#0f172a; border-left:4px solid #3b82f6; border-radius:5px; text-align:left; color:#e2e8f0; line-height: 1.5;';
+        document.getElementById('quiz-container').appendChild(expDiv);
+      }
+      expDiv.style.display = 'none';
+
+      // Crear o ocultar botón "Siguiente"
+      let btnSiguiente = document.getElementById('btn-siguiente');
+      if (!btnSiguiente) {
+        btnSiguiente = document.createElement('button');
+        btnSiguiente.id = 'btn-siguiente';
+        btnSiguiente.innerText = 'Siguiente ➔';
+        btnSiguiente.style.cssText = 'display:none; margin:15px auto 0 auto; background:#2563eb; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; width:100%;';
+        btnSiguiente.onclick = () => pasarSiguientePregunta();
+        document.getElementById('quiz-container').appendChild(btnSiguiente);
+      }
+      btnSiguiente.style.display = 'none';
 
       q.opciones.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.textContent = opt;
-        btn.onclick = () => responder(idx, q.correcta);
+        btn.onclick = () => responder(idx, q.correcta, q.explicacion);
         optsDiv.appendChild(btn);
       });
     }
 
-    function responder(seleccionada, correcta) {
+    function responder(seleccionada, correcta, explicacion) {
+      const botones = document.querySelectorAll('.option-btn');
+      botones.forEach(b => b.disabled = true); // Bloquea los botones al responder
+
+      const expDiv = document.getElementById('explicacion-box');
+      const btnSiguiente = document.getElementById('btn-siguiente');
+
+      const textoExplicacion = explicacion || 'Respuesta correcta basada en los manuales de la OPAAA.';
+
       if (seleccionada === correcta) {
-        alert('¡Correcto! +10 puntos');
+        botones[seleccionada].style.background = '#22c55e'; // Verde
+        expDiv.innerHTML = `<strong>✅ ¡Correcto! (+10 pts)</strong><br><br><strong>Explicación:</strong> ${textoExplicacion}`;
         socket.emit('respuestaCorrecta', usuarioActual);
       } else {
-        alert('Incorrecto');
+        botones[seleccionada].style.background = '#ef4444'; // Rojo
+        botones[correcta].style.background = '#22c55e'; // Resalta la correcta en verde
+        expDiv.innerHTML = `<strong>❌ Incorrecto.</strong><br><br><strong>Explicación:</strong> ${textoExplicacion}`;
       }
+
+      expDiv.style.display = 'block';
+      btnSiguiente.style.display = 'block';
+    }
+
+    function pasarSiguientePregunta() {
       indicePregunta++;
       if (indicePregunta < preguntasActuales.length) {
         mostrarPregunta();
       } else {
-        alert('Has completado las preguntas de esta materia.');
+        alert('🎉 Has completado todas las preguntas de esta materia.');
         document.getElementById('quiz-container').classList.add('hidden');
       }
     }
-    <!-- Botón de Modo Editor -->
-<div style="text-align: center; margin-top: 30px;">
-  <button id="btnModoEditor" style="background: #333; color: #fff; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer;">
-    🛠️ Modo Editor
-  </button>
-</div>
 
-<!-- Modal / Formulario de Editor (Oculto por defecto) -->
-<div id="panelEditor" style="display: none; background: #1e293b; color: white; padding: 20px; border-radius: 10px; max-width: 500px; margin: 20px auto; text-align: left;">
-  <h3>➕ Agregar Nueva Pregunta</h3>
-  
-  <label>Materia / Categoría:</label><br>
-  <input type="text" id="edCategoria" placeholder="Ej: Astronomía Observacional" style="width: 100%; margin-bottom: 10px;"><br>
-
-  <label>Pregunta:</label><br>
-  <input type="text" id="edPregunta" placeholder="Escribe la pregunta" style="width: 100%; margin-bottom: 10px;"><br>
-
-  <label>Opciones (separadas por coma):</label><br>
-  <input type="text" id="edOpciones" placeholder="Opción 1, Opción 2, Opción 3, Opción 4" style="width: 100%; margin-bottom: 10px;"><br>
-
-  <label>Índice de la respuesta correcta (0 para la 1ª, 1 para la 2ª, etc.):</label><br>
-  <input type="number" id="edCorrecta" min="0" max="3" value="0" style="width: 100%; margin-bottom: 15px;"><br>
-
-  <button id="btnGuardarPregunta" style="background: #22c55e; color: white; padding: 10px; width: 100%; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-    Guardar Pregunta Permanentemente
-  </button>
-</div>
-
-<script>
-  let claveEditorGuardada = "";
-
-  document.getElementById('btnModoEditor').addEventListener('click', () => {
-    const pass = prompt("Ingresa la clave de editor:");
-    if (pass) {
-      socket.emit('verificarEditor', pass);
-      claveEditorGuardada = pass;
-    }
-  });
-
-  socket.on('accesoEditorConcedido', (exito) => {
-    if (exito) {
-      alert("¡Acceso de Editor Concedido!");
-      document.getElementById('panelEditor').style.display = 'block';
-    } else {
-      alert("Clave incorrecta.");
-      claveEditorGuardada = "";
-    }
-  });
-
-  document.getElementById('btnGuardarPregunta').addEventListener('click', () => {
-    const categoria = document.getElementById('edCategoria').value.trim();
-    const pregunta = document.getElementById('edPregunta').value.trim();
-    const opcionesRaw = document.getElementById('edOpciones').value.trim();
-    const correcta = parseInt(document.getElementById('edCorrecta').value);
-
-    if (!categoria || !pregunta || !opcionesRaw) {
-      alert("Por favor completa todos los campos.");
-      return;
-    }
-
-    const opciones = opcionesRaw.split(',').map(o => o.trim());
-
-    socket.emit('agregarPregunta', {
-      clave: claveEditorGuardada,
-      categoria,
-      pregunta,
-      opciones,
-      correcta
+    // --- LÓGICA DEL MODO EDITOR ---
+    document.getElementById('btnModoEditor').addEventListener('click', () => {
+      const pass = prompt("Ingresa la clave de editor:");
+      if (pass) {
+        socket.emit('verificarEditor', pass);
+        claveEditorGuardada = pass;
+      }
     });
-  });
 
-  socket.on('preguntaGuardadaExito', () => {
-    alert("✅ Pregunta agregada exitosamente y guardada en el sistema.");
-    document.getElementById('edPregunta').value = "";
-    document.getElementById('edOpciones').value = "";
-  });
-</script>
+    socket.on('accesoEditorConcedido', (exito) => {
+      if (exito) {
+        alert("¡Acceso de Editor Concedido!");
+        document.getElementById('panelEditor').style.display = 'block';
+      } else {
+        alert("Clave incorrecta.");
+        claveEditorGuardada = "";
+      }
+    });
+
+    document.getElementById('btnGuardarPregunta').addEventListener('click', () => {
+      const categoria = document.getElementById('edCategoria').value.trim();
+      const pregunta = document.getElementById('edPregunta').value.trim();
+      const opcionesRaw = document.getElementById('edOpciones').value.trim();
+      const correcta = parseInt(document.getElementById('edCorrecta').value);
+      const explicacion = document.getElementById('edExplicacion').value.trim();
+
+      if (!categoria || !pregunta || !opcionesRaw) {
+        alert("Por favor completa los campos principales (Materia, Pregunta y Opciones).");
+        return;
+      }
+
+      const opciones = opcionesRaw.split(',').map(o => o.trim());
+
+      socket.emit('agregarPregunta', {
+        clave: claveEditorGuardada,
+        categoria,
+        pregunta,
+        opciones,
+        correcta,
+        explicacion
+      });
+    });
+
+    socket.on('preguntaGuardadaExito', () => {
+      alert("✅ Pregunta agregada exitosamente y guardada en el sistema.");
+      document.getElementById('edPregunta').value = "";
+      document.getElementById('edOpciones').value = "";
+      document.getElementById('edExplicacion').value = "";
+    });
+  </script>
 </body>
 </html>
