@@ -197,6 +197,82 @@
         document.getElementById('quiz-container').classList.add('hidden');
       }
     }
-  </script>
+    <!-- Botón de Modo Editor -->
+<div style="text-align: center; margin-top: 30px;">
+  <button id="btnModoEditor" style="background: #333; color: #fff; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer;">
+    🛠️ Modo Editor
+  </button>
+</div>
+
+<!-- Modal / Formulario de Editor (Oculto por defecto) -->
+<div id="panelEditor" style="display: none; background: #1e293b; color: white; padding: 20px; border-radius: 10px; max-width: 500px; margin: 20px auto; text-align: left;">
+  <h3>➕ Agregar Nueva Pregunta</h3>
+  
+  <label>Materia / Categoría:</label><br>
+  <input type="text" id="edCategoria" placeholder="Ej: Astronomía Observacional" style="width: 100%; margin-bottom: 10px;"><br>
+
+  <label>Pregunta:</label><br>
+  <input type="text" id="edPregunta" placeholder="Escribe la pregunta" style="width: 100%; margin-bottom: 10px;"><br>
+
+  <label>Opciones (separadas por coma):</label><br>
+  <input type="text" id="edOpciones" placeholder="Opción 1, Opción 2, Opción 3, Opción 4" style="width: 100%; margin-bottom: 10px;"><br>
+
+  <label>Índice de la respuesta correcta (0 para la 1ª, 1 para la 2ª, etc.):</label><br>
+  <input type="number" id="edCorrecta" min="0" max="3" value="0" style="width: 100%; margin-bottom: 15px;"><br>
+
+  <button id="btnGuardarPregunta" style="background: #22c55e; color: white; padding: 10px; width: 100%; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+    Guardar Pregunta Permanentemente
+  </button>
+</div>
+
+<script>
+  let claveEditorGuardada = "";
+
+  document.getElementById('btnModoEditor').addEventListener('click', () => {
+    const pass = prompt("Ingresa la clave de editor:");
+    if (pass) {
+      socket.emit('verificarEditor', pass);
+      claveEditorGuardada = pass;
+    }
+  });
+
+  socket.on('accesoEditorConcedido', (exito) => {
+    if (exito) {
+      alert("¡Acceso de Editor Concedido!");
+      document.getElementById('panelEditor').style.display = 'block';
+    } else {
+      alert("Clave incorrecta.");
+      claveEditorGuardada = "";
+    }
+  });
+
+  document.getElementById('btnGuardarPregunta').addEventListener('click', () => {
+    const categoria = document.getElementById('edCategoria').value.trim();
+    const pregunta = document.getElementById('edPregunta').value.trim();
+    const opcionesRaw = document.getElementById('edOpciones').value.trim();
+    const correcta = parseInt(document.getElementById('edCorrecta').value);
+
+    if (!categoria || !pregunta || !opcionesRaw) {
+      alert("Por favor completa todos los campos.");
+      return;
+    }
+
+    const opciones = opcionesRaw.split(',').map(o => o.trim());
+
+    socket.emit('agregarPregunta', {
+      clave: claveEditorGuardada,
+      categoria,
+      pregunta,
+      opciones,
+      correcta
+    });
+  });
+
+  socket.on('preguntaGuardadaExito', () => {
+    alert("✅ Pregunta agregada exitosamente y guardada en el sistema.");
+    document.getElementById('edPregunta').value = "";
+    document.getElementById('edOpciones').value = "";
+  });
+</script>
 </body>
 </html>
